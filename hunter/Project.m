@@ -11,8 +11,8 @@ snr = 8e-1;
 z_trim = 600;
 
 
-load data_s_u.mat
-z_offset = 800;
+load data_mannequin.mat
+z_offset = 300;
 
 image_width = size(rect_data,1); %N
 temporal_bins = size(rect_data,3); %M
@@ -65,7 +65,15 @@ end
 tdata = zeros(2.*temporal_bins,2.*image_width,2.*image_width);
 tdata(1:end./2,1:end./2,1:end./2)  = reshape(mtx*data(:,:),[temporal_bins image_width image_width]);
 
+% tic;
+% tdata = imgaussfilt(tdata,0.75,'filterDomain','frequency');
+% toc;
+
+%tdata = imgaussfilt(tdata,0.75);
+
 tvol = ifftn(fftn(tdata).*invpsf);
+
+
 tvol = tvol(1:end./2,1:end./2,1:end./2);
 
 vol  = reshape(mtxi*tvol(:,:),[temporal_bins image_width image_width]);
@@ -82,14 +90,44 @@ vol = vol((1:ind)+z_offset,:,:);
 
 tic_z = tic_z((1:ind)+z_offset);
 
-imagesc(tic_x,tic_y,squeeze(max(vol,[],1)));
-title('Front view');
+output_image = squeeze(max(vol,[],1));
+
+figure;
+imagesc(tic_x,tic_y, output_image);
+title('Front Raw Output');
 set(gca,'XTick',linspace(min(tic_x),max(tic_x),3));
 set(gca,'YTick',linspace(min(tic_y),max(tic_y),3));
 xlabel('x (m)');
 ylabel('y (m)');
 colormap('gray');
 axis square;
+
+% guassian_filtered_image = imgaussfilt(output_image,1);
+% 
+% figure;
+% imagesc(tic_x,tic_y,guassian_filtered_image );
+% title('Front Guassian Filter');
+% set(gca,'XTick',linspace(min(tic_x),max(tic_x),3));
+% set(gca,'YTick',linspace(min(tic_y),max(tic_y),3));
+% xlabel('x (m)');
+% ylabel('y (m)');
+% colormap('gray');
+% axis square;
+% 
+% 
+% B = rescale(guassian_filtered_image)
+% level = graythresh(B)
+% BW = im2bw(B,.2);
+% 
+% figure;
+% imagesc(tic_x,tic_y,BW );
+% title('Front Guassian Filter');
+% set(gca,'XTick',linspace(min(tic_x),max(tic_x),3));
+% set(gca,'YTick',linspace(min(tic_y),max(tic_y),3));
+% xlabel('x (m)');
+% ylabel('y (m)');
+% colormap('gray');
+% axis square;
 
 
 
