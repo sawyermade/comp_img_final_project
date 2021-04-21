@@ -1,0 +1,29 @@
+Main Task & Deliverables. The key task is to read and implement (using Matlab) the assigned research paper. The first deliverable is for each group to give a 25-minute presentation on the assigned paper, the presentation time should be 20 minutes, and 5 minutes at the end is left for questions. The content should roughly follow this outline:
+
+Describe the problem & motivation– for example, why is the imaging technique important? Example answer: the technique can potentially help you image tumors from the comfort of your own home, important innovation for telehealth which is a hot topic these days, due to COVID-19 and social distancing guidelines.
+Describe & show the Hardware setup (i.e. talk about the imaging/optical system setup, show pictures)
+Describe the forward model/problem (i.e. talk about the assumptions of the forward model, is it an LSI system?)
+Describe your implementation of the forward model and any modifications from the original
+Describe the Inverse problem (i.e. How was it solved? In spatial domain or in the Fourier/frequency domain? What regularization was used? Tikhonov or something else?)
+Describe your inversion algorithm and any modifications/improvements of the original algorithm
+Results (Discuss results, show pictures of results, compare with older approaches, etc.)
+Conclusions (Your objective evaluation as a group, any suggestions for further improvements? What difficulties did you face and how did you overcome them?)
+I’ll reiterate that, this outline is only for guidance, feel free to be as creative as you like, just ensure that these key points are covered.
+
+Report. The second deliverable is a report no longer than 10 pages (excluding your code and references/bibliographic information). The report should follow the same format as the presentation.
+
+Group. Group members are self-assigned, and each group will be a five-member team. Each group has an assigned research paper, along with potentially helpful supplementary materials (please do research the area to find more material that can help you understand the work).
+
+Presentation Schedule. There are five teams with the following schedule:
+
+Teams 1 and 3 and 5will present on Monday April 26, 2020
+Teams 2 and 4will present on Wednesday April 28, 2020
+Which team presents first? This will be decided by a socially-distant “coin-toss,” on the day, at the start of each session.
+
+Remote presentations. All presentations will be on Microsoft Teams, just join the usual class link. If your team is presenting please arrive early.
+
+Participation. Remember that participation is graded, asking meaningful (and relevant) questions is a sign of being engaged with what is being presented. Thus, you’re encouraged to attend all sessions and participate.
+
+ 
+
+These topics have been picked to maximize your learning experience and equally be fun for you all. So, do give yourselves enough time to read/digest the paper, collaborate with peers, split the tasks, use the supplementary documents, write code, run simulations, make nice and informative slides, and above all have fun!
