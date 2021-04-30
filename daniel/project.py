@@ -1,5 +1,4 @@
-import numpy as np, imageio, scipy.io, sys, os, cv2
-from PIL import Image
+import numpy as np, scipy.io, sys, os
 import matplotlib.pyplot as plt
 
 def define_psf(U, V, slope):
