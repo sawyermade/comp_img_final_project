@@ -6,13 +6,13 @@ speed_light = 3e8;
 backprop = 0;
 diffuse = 0;
 K = 2;
-snr = 8e-1;
+snr = 0.8;
 
 z_trim = 600;
 
 
-load data_mannequin.mat
-z_offset = 300;
+load data_s_u.mat
+z_offset = 800;
 
 image_width = size(rect_data,1); %N
 temporal_bins = size(rect_data,3); %M
@@ -20,7 +20,7 @@ temporal_bins = size(rect_data,3); %M
 hist_range = temporal_bins * speed_light * bin_res;
 
 
-
+% 
 for k = 1:K
     
     temporal_bins = temporal_bins / 2;
@@ -69,8 +69,6 @@ tdata(1:end./2,1:end./2,1:end./2)  = reshape(mtx*data(:,:),[temporal_bins image_
 % tdata = imgaussfilt(tdata,0.75,'filterDomain','frequency');
 % toc;
 
-%tdata = imgaussfilt(tdata,0.75);
-
 tvol = ifftn(fftn(tdata).*invpsf);
 
 
@@ -102,18 +100,18 @@ ylabel('y (m)');
 colormap('gray');
 axis square;
 
-% guassian_filtered_image = imgaussfilt(output_image,1);
-% 
-% figure;
-% imagesc(tic_x,tic_y,guassian_filtered_image );
-% title('Front Guassian Filter');
-% set(gca,'XTick',linspace(min(tic_x),max(tic_x),3));
-% set(gca,'YTick',linspace(min(tic_y),max(tic_y),3));
-% xlabel('x (m)');
-% ylabel('y (m)');
-% colormap('gray');
-% axis square;
-% 
+guassian_filtered_image = imgaussfilt(output_image,1);
+
+figure;
+imagesc(tic_x,tic_y,guassian_filtered_image );
+title('Front Guassian Filter');
+set(gca,'XTick',linspace(min(tic_x),max(tic_x),3));
+set(gca,'YTick',linspace(min(tic_y),max(tic_y),3));
+xlabel('x (m)');
+ylabel('y (m)');
+colormap('gray');
+axis square;
+
 % 
 % B = rescale(guassian_filtered_image)
 % level = graythresh(B)
