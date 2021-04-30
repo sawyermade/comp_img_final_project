@@ -1,60 +1,41 @@
 import numpy as np, imageio, scipy.io, sys, os, cv2
-# from PIL import Image
+from PIL import Image
 import matplotlib.pyplot as plt
 
 def define_psf(U, V, slope):
 	# Vars
-	x = np.linspace(-1, 1, 2 * U)
-	y = np.linspace(-1, 1, 2 * U)
-	z = np.linspace(0, 2, 2 * V)
-	gz, gy, gx = [np.swapaxes(i, 0, 1) for i in np.meshgrid(z, y, x)]
+	x = np.linspace(-1, 1, 2 * U).astype(float)
+	y = np.linspace(-1, 1, 2 * U).astype(float)
+	z = np.linspace(0, 2, 2 * V).astype(float)
+	# gz, gy, gx = [np.swapaxes(i, 0, 1) for i in np.meshgrid(z, y, x)]
+	gz, gy, gx = np.meshgrid(z, y, x, indexing='ij')
 	print(f'x, y, z shape: {x.shape}, {y.shape}, {z.shape}')
 	print(f'gx, gy, gz shape: {gx.shape}, {gy.shape}, {gz.shape}')
+	print(f'gx type: {type(gx)}')
 
 	# Define PSF
 	psf = np.abs((4 * slope)**2 * (gx**2 + gy**2) - gz).astype(float)
 	print(f'psf shape: {psf.shape}')
-	# psf = psf == repmat(min(psf,[],1),[2.*V 1 1]);
-	# psf_min = np.expand_dims(psf.min(0), 0)
-	# psf_min = psf.min(0)
-	# print(f'psf_min shape: {psf_min.shape}')
 	psf = np.tile(psf.min(0), [2 * V, 1, 1])
 	print(f'psf tiled shape: {psf.shape}')
-	psf = psf / psf[:,U,U].sum()
-	psf = psf / np.linalg.norm(psf);
-	# psf_norm = np.linalg.norm(psf)
-	# print(f'psf norm: {psf_norm}')
-	# psf = circshift(psf,[0 U U])
-	psf = np.roll(psf, (0, U, U))
+
+	psf = psf / 128.0
+	psf = np.roll(psf, U, axis=0)
+	psf = np.roll(psf, U, axis=2)
+	# print(psf)
 	
 	return psf
 
 def resampling_operator(M):
 	# Vars
-	# mtx = np.zeros((M**2, M))
-	# mtx = np.ones((M**2, M))
-	# print(f'mtx shape: {mtx.shape}')
-	# x = np.asarray([i for i in range(M**2)])
-	# xs = np.floor(x**0.5)
-	# print(x.min(), x.max())
-	# print(xs.min(), xs.max())
-	# mtx_ind = np.ravel_multi_index((x, xs), mtx.shape)
-	# print(f'mtx_ind shape: {mtx_ind.shape}')
-	# print(mtx_ind[0:10])
-	# mtx[mtx_ind] = 1
-	# print(f'mtx shape: {mtx.shape}')
-
-	# mtx_diag = spdiags(1./sqrt(x)',0,M.^2,M.^2)
 	mtx = np.zeros((M**2, M))
 	x = np.asarray([i for i in range(M**2)])
 	xs = np.floor(x**0.5).astype(int)
 	print(f'xs zeros: {len([i for i in xs if i == 0])}')
 	mtx[x, xs] = 1
-	# print(mtx.min(), mtx.max(), mtx.sum(), mtx.shape)
 
 	xs[xs == 0] = 1
 	mtx = scipy.sparse.csr_matrix(mtx)
-	# mtx_diag = scipy.sparse.spdiags(1 / xs, 0, M**2, M**2)
 	mtx = scipy.sparse.spdiags(1 / xs, 0, M**2, M**2) @ mtx 
 	mtxi = mtx.T
 	print(f'mtx shape: {mtx.shape}')
@@ -105,7 +86,7 @@ def cnlos_reconstruction(mat_in_path):
 	print(f'z_offset, isdiffuse, snr: {z_offset}, {isdiffuse}, {snr}')
 
 	# Get spatial, temporal, and range dims
-	N, M = mat_rect_data.shape[0], mat_rect_data.shape[-1]
+	N, M = mat_rect_data.shape[0], mat_rect_data.shape[2]
 	mat_range = M * c * bin_resolution
 	print(f'M, N: {M}, {N}')
 
@@ -122,9 +103,8 @@ def cnlos_reconstruction(mat_in_path):
 	mat_rect_data[:, : , 0:z_trim] = 0
 
 	# Define NLOS blur kernel 
-	psf = define_psf(N, M, mat_width / mat_range);
+	psf = scipy.io.loadmat('psf.mat')['psf']
 	print(f'psf shape: {psf.shape}')
-	scipy.io.savemat('psf_my.mat', {'psf_mine' : psf})
 
 	# Compute inverse filter of NLOS blur kernel
 	fpsf = np.fft.fftn(psf)
@@ -146,44 +126,28 @@ def cnlos_reconstruction(mat_in_path):
 	if isdiffuse: data = data * grid_z**4
 	else: data = data * grid_z**2
 	print(f'data shape: {data.shape}')
-	# print(data[-1, 0:10, 0])
 
 	# Step 2: Resample time axis and pad result
-	# tdata = zeros(2.*M,2.*N,2.*N);
-	# tdata(1:end./2,1:end./2,1:end./2)  = reshape(mtx*data(:,:),[M N N]);
 	data_rs = data.reshape((data.shape[0], -1))
 	print(f'data_rs shape: {data_rs.shape}')
-	# print(data_rs[-1, 0:10])
 	tdata = np.zeros((2 * M, 2 * N, 2 * N))
 	tdata[:M, :N, :N] = (mtx @ data_rs).reshape((M, N, N))
 	print(f'tdata shape: {tdata.shape}')
 
 
 	# Step 3: Convolve with inverse filter and unpad result
-	# tvol = ifftn(fftn(tdata).*invpsf);
-	# tvol = tvol(1:end./2,1:end./2,1:end./2);
 	tvol = np.fft.ifftn(np.fft.fftn(tdata) * invpsf)
 	tvol = tvol[:M, :N, :N]
 	print(f'tvol shape: {tvol.shape}')
 
 	# Step 4: Resample depth axis and clamp results
-	# vol  = reshape(mtxi*tvol(:,:),[M N N]);
-	# vol  = max(real(vol),0);
 	tvol_rs = tvol.reshape((tvol.shape[0], -1))
 	vol = (mtxi @ tvol_rs).reshape((M, N, N))
-	# print(f'vol shape: {vol.shape}')
 	vol = np.real(vol)
 	vol[vol < 0] = 0
 	print(f'vol shape: {vol.shape}')
-
-	tic_z = np.linspace(0, mat_range//2, vol.shape[0])
-	tic_y = np.linspace(-mat_width, mat_width, vol.shape[1])
-	tic_x = np.linspace(-mat_width, mat_width, vol.shape[2])
 	
 	# Crop and flip for visualization
-	# ind = round(M.*2.*width./(range./2));
-	# vol = vol(:,:,end:-1:1);
-	# vol = vol((1:ind)+z_offset,:,:);
 	ind = round(M * 2 * mat_width / (mat_range / 2))
 	print(f'ind: {ind}, {M}, {mat_width}, {mat_range}, {z_offset}')
 	vol = vol[:, :, -1::-1]
@@ -191,27 +155,23 @@ def cnlos_reconstruction(mat_in_path):
 	print(f'vol shape: {vol.shape}')
 	vol1 = vol.max(0)
 	print(f'vol1 shape: {vol1.shape}')
-	scipy.io.savemat('vol1_my.mat', {'vol1_mine' : vol1})
 
-	tic_z = tic_z[z_offset:ind+z_offset]
-	
-	# plt.figure('bob')
-
-	# plt.subplot(1, 3, 1)
-	# plt.imshow(vol1, aspect='auto', interpolation='none', extent=None, cmap='gray')
-	# plt.show()
+	# Display
+	plt.figure('bob')
+	plt.subplot(1, 3, 1)
+	plt.imshow(vol1, cmap='gray')
+	plt.show()
 
 def main():
 	# Args
 	try:
 		mat_in_path = sys.argv[1]
-		img_out_path = sys.argv[2]
 	except:
-		print(f'\n***ERROR*** Must have two positional arguments for path to matlab file and output file:\n\n$ python3 project.py path/to/data.m path/to/output.png\n')
+		print(f'\n***ERROR*** Must have positional argument for path to matlab file:\n\n$ python3 project.py path/to/data.m\n')
 		sys.exit()
 
-	#CNLOS Reconstruction
-	rec = cnlos_reconstruction(mat_in_path)
+	# CNLOS Reconstruction
+	cnlos_reconstruction(mat_in_path)
 
 if __name__ == '__main__':
 	main()
