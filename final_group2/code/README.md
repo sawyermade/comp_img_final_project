@@ -3,13 +3,13 @@
 ## Matlab
 ```
 # Original code actually working
-Run project.m in matlab, click "Change Folder" button, and set scene on line 2
+Run project.m in matlab, click "Change Folder" button, and set scene on line 2.
 
 # Our improved code with pre/post processing
-
+Run project_mods.m in matlab, click "Change Folder" button, and chose data to load by commenting/uncommenting load lines in beginning of script.
 ```
 
-## Python: Ubuntu 20.04
+## Python w/ Anaconda: Ubuntu 20.04
 ```
 # Create & activate anaconda environment
 conda env create -f environment.yml
