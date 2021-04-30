@@ -1,5 +1,5 @@
 % Default scene: SET TO 1 through 9
-scene = 7;
+scene = 8;
 
 % Constants
 bin_resolution = 4e-12; % Native bin resolution for SPAD is 4 ps
@@ -166,7 +166,7 @@ ylabel('y (m)');
 colormap('gray');
 axis square;
 
-save('vars_mannequin.mat')
+% save('vars_mannequin.mat')
 
 function psf = definePsf(U,V,slope)
     % Local function to computeD NLOS blur kernel

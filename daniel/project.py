@@ -60,15 +60,15 @@ def cnlos_reconstruction(mat_in_path):
 	snr = 8e-1
 	z_trim = 600
 	z_offset_dict = {
-		'data_resolution_chart_40cm.mat' : [350],
-		'data_resolution_chart_65cm.mat' : [700],
-		'data_dot_chart_40cm.mat' : [350],
-		'data_dot_chart_65cm.mat' : [700],
-		'data_mannequin.mat' : [300],
-		'data_exit_sign.mat' : [600],
-		'data_s_u.mat' : [800],
-		'data_outdoor_s.mat' : [700],
-		'data_diffuse_s.mat' : [100, 1, snr * 1e-1],
+		'data_resolution_chart_40cm.mat' : [350, 'psf.mat'],
+		'data_resolution_chart_65cm.mat' : [700, 'psf.mat'],
+		'data_dot_chart_40cm.mat' : [350, 'psf.mat'],
+		'data_dot_chart_65cm.mat' : [700, 'psf.mat'],
+		'data_mannequin.mat' : [300, 'psf.mat'],
+		'data_exit_sign.mat' : [600, 'psf.mat'],
+		'data_s_u.mat' : [800, 'psf.mat'],
+		'data_outdoor_s.mat' : [700, 'psf_large.mat'],
+		'data_diffuse_s.mat' : [100, 1, snr * 1e-1, 'psf.mat']
 	}
 
 	# Open matlab data file
@@ -81,8 +81,9 @@ def cnlos_reconstruction(mat_in_path):
 	mat_fname = os.path.split(mat_in_path)[-1]
 	print(f'mat_fname: {mat_fname}')
 	mat_params = z_offset_dict[mat_fname]
-	if len(mat_params) > 1: z_offset, isdiffuse, snr = mat_params
+	if len(mat_params) > 2: z_offset, isdiffuse, snr = mat_params[:3]
 	else: z_offset = mat_params[0]
+	psf_fname = mat_params[-1]
 	print(f'z_offset, isdiffuse, snr: {z_offset}, {isdiffuse}, {snr}')
 
 	# Get spatial, temporal, and range dims
@@ -103,7 +104,7 @@ def cnlos_reconstruction(mat_in_path):
 	mat_rect_data[:, : , 0:z_trim] = 0
 
 	# Define NLOS blur kernel 
-	psf = scipy.io.loadmat('psf.mat')['psf']
+	psf = scipy.io.loadmat(psf_fname)['psf']
 	print(f'psf shape: {psf.shape}')
 
 	# Compute inverse filter of NLOS blur kernel
