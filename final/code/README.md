@@ -2,7 +2,11 @@
 
 ## Matlab
 ```
+# Original code actually working
 Run project.m in matlab, click "Change Folder" button, and set scene on line 2
+
+# Our improved code with pre/post processing
+
 ```
 
 ## Python: Ubuntu 20.04
